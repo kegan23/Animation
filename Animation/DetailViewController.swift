@@ -14,11 +14,10 @@ class DetailViewController: UIViewController {
     
     var menuItem:MenuItem?{
         didSet{
+            
+            // 用于修改详情页
             view.backgroundColor = menuItem?.color
             logo.text = menuItem?.logo
-//            UIView.animateWithDuration(0.4, animations: {
-//                self.menuView.transform = CGAffineTransformIdentity
-//            })
         }
     }
     

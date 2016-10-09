@@ -25,23 +25,18 @@ class ViewController: UIViewController, UIScrollViewDelegate, MenuProtocol {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        menuContainerView.layer.anchorPoint = CGPointMake(1.0, 0.5)
-        menuContainerView.layoutIfNeeded()
-//        menuContainerView.setNeedsLayout()
-        
-//        NSLayoutConstraint.constraintsWithVisualFormat("|-view", options: .AlignAllLeading, metrics: ["view" : menuContainerView], views: <#T##[String : AnyObject]#>)
-        
-        var frame = menuContainerView.frame
-        frame.origin.x = 0
-        menuContainerView.translatesAutoresizingMaskIntoConstraints = true
-        menuContainerView.frame = frame
-        
-        print("frame is \(menuContainerView.frame)")
-        
+//        menuContainerView.layer.anchorPoint = CGPointMake(1.0, 0.5)
+//        menuContainerView.layoutIfNeeded()
+
+//        var frame = menuContainerView.frame
+//        frame.origin.x = 0
+//        menuContainerView.translatesAutoresizingMaskIntoConstraints = true
+//        menuContainerView.frame = frame
     }
     
     @IBOutlet weak var leadingConstraint: NSLayoutConstraint!
     
+    //MARK: - Init
     private var menuViewController:MenuViewController?
     private var detailViewController:DetailViewController? {
         didSet {
@@ -51,7 +46,7 @@ class ViewController: UIViewController, UIScrollViewDelegate, MenuProtocol {
             }
         }
     }
-    
+
     var menuItem:MenuItem? {
         didSet{
             if let detail = detailViewController{
@@ -61,33 +56,33 @@ class ViewController: UIViewController, UIScrollViewDelegate, MenuProtocol {
         }
     }
     
+    // MARK: - Action
+    /**
+     *  @brief 显示／隐藏菜单按钮
+     *
+     *  @param show     是否显示
+     *  @param animate  是否动画
+     */
     func hideShowMenu(show:Bool,animate:Bool){
         let menuOff = CGRectGetHeight(menuContainerView.bounds)
         scrollView.setContentOffset(show ? CGPointMake(0, menuOff):CGPointZero, animated: animate)
     }
     
+    /**
+     *  @brief 自动弹回底部tabbar
+     */
     func toggleMenu(){
         let menuOff = CGRectGetHeight(menuContainerView.bounds)
         scrollView.setContentOffset(scrollView.contentOffset.y != 0 ? CGPointZero:CGPointMake(0, menuOff), animated: true)
     }
     
+    /**
+     *  @brief 是否显示底部tabbar
+     *
+     *  @return Bool值
+     */
     func isShow() -> Bool {
         return scrollView.contentOffset.y != 0
-    }
-    
-    @IBAction func showOrHideMenu(sender: UIButton) {
-        
-        if self.isShow() {
-            hideShowMenu(false, animate: true)
-        } else {
-            hideShowMenu(true, animate: true)
-        }
-        
-        UIView.animateWithDuration(0.5) { 
-            let transform:CGAffineTransform = sender.transform;
-            sender.transform = CGAffineTransformRotate(transform, CGFloat(M_PI));
-        }
-        
     }
     
     override func didReceiveMemoryWarning() {
@@ -105,38 +100,58 @@ class ViewController: UIViewController, UIScrollViewDelegate, MenuProtocol {
             menuViewController?.delegate = self
         }
     }
-
+    
+    /**
+     *  @brief 计算滚动距离百分比
+     */
     func scrollViewDidScroll(scrollView: UIScrollView) {
         
         let multipier = 1/menuContainerView.bounds.height
-//        print("frame is \(menuContainerView.frame.size.height)")
-//        print("bounds is \(menuContainerView.bounds.height)")
         progress = 1 - ((scrollView.contentOffset.y) * multipier)
         menuContainerView.layer.transform = menuTransformForPercent(progress!)
-        menuContainerView.alpha = 1.0 - progress!
         scrollView.pagingEnabled = scrollView.contentOffset.y < (scrollView.contentSize.height - CGRectGetHeight(scrollView.frame))
         isFirst = false
     }
     
+    /**
+     *  @brief 根据滚动距离制作动画
+     *
+     *  @param percent 移动距离百分比
+     *
+     *  @return 旋转动画
+     */
     func menuTransformForPercent(percent: CGFloat) -> CATransform3D {
         var identity = CATransform3DIdentity
         identity.m34 = -1.0/1000   //1 / [camera distance]
         let remainingPercent = percent
         let angle = remainingPercent * CGFloat(-M_PI_2)
-//        print("angle is \(angle)")
+        
         let rotationTransform = CATransform3DRotate(identity, angle,
                                                     1.0, 0.0, 0.0)
         let translationTransform =
             CATransform3DMakeTranslation(0, -menuContainerView.bounds.size.height/2*(1-cos(angle)), 0)
-        
-        
-//        let transform3d = CATransform3DMakeTranslation(0, -menuContainerView.frame.size.height/2*sinf(angle), -menuContainerView.frame.size.height/2*(1-cosf(angle)));
+
         return CATransform3DConcat(rotationTransform,
                                    translationTransform)
     }
     
     func configureMenu(menu: MenuItem) {
         self.menuItem = menu
+    }
+    
+    // MARK: - 按钮点击
+    @IBAction func showOrHideMenu(sender: UIButton) {
+        
+        if self.isShow() {
+            hideShowMenu(false, animate: true)
+        } else {
+            hideShowMenu(true, animate: true)
+        }
+        
+        UIView.animateWithDuration(0.5) {
+            let transform:CGAffineTransform = sender.transform;
+            sender.transform = CGAffineTransformRotate(transform, CGFloat(M_PI));
+        }
     }
 }
 

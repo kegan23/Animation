@@ -21,7 +21,6 @@ class MenuCell: UICollectionViewCell {
         logo.backgroundColor = UIColor.clearColor()
         
         self.backgroundColor = item.color
-        
     }
     
 }
